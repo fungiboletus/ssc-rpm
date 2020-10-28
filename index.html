@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>An attempt at estimating the actual top speed of the SSC Tuatara fastest production car record, using
+    youtube-dl and audacity.</title>
+  <style type="text/css">
+    @media (prefers-color-scheme: dark) {
+      body {
+        color: #fff;
+        background: #222;
+      }
+
+      a:link {
+        color: #9cf
+      }
+
+      a:hover,
+      a:visited:hover {
+        color: #cef
+      }
+
+      a:visited {
+        color: #c9f
+      }
+    }
+
+    body {
+      margin: 1em auto;
+      max-width: 40em;
+      padding: 0 .62em;
+      font: 1.2em/1.62 sans-serif;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.2;
+      margin-top: 3em;
+    }
+
+    @media print {
+      body {
+        max-width: none
+      }
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    iframe {
+      max-width: 100%;
+    }
+
+    code {
+      font-family: monospace, monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>An attempt at estimating the actual top speed of the SSC Tuatara fastest production car record, using youtube-dl
+    and audacity.
+  </h1>
+
+  <p>A few days ago, the YouTube algorithm suggested to me and many other a BBC TopGear video about a new world record
+    for the
+    fastest <em>production</em> car.</p>
+
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/N22JfNHiC1k" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen></iframe>
+
+  <p>SSC North America, a sports car manufacturer, claims in this video to have reached 532.8km/h with their latest car
+    (331mph if you still didn't get the memo about the
+    world using metric units). It's a single run and the video doesn't include the second run driving back to the
+    starting point. A real speed record for cars is the mean of the two runs to take into account elevation changes and
+    wind. Still, it's <em>a lot</em> faster than the previous official world record held by Bugatti on their dedicated
+    track at
+    431km/h, or the non-official world record of Koenigsegg at 447km/h.</p>
+
+  <p>You can argue whether these cars are production cars, or the utility to drive at such high speeds when after each
+    run of a few seconds you need to change the tires, the wheels, and sometimes the engine. You can also wonder why our
+    societies still invest in fast supercars cars when they should prioritize low consumption electric cars. Or you can
+    reflect on the point of building cars at all, shouldn't we bike and develop more public transports? I
+    was impressed by this record. I like fast cars, I own a Bugatti Chiron in Lego.</p>
+
+  <p>You may have guessed, the record is perhaps invalid. Many people did question the record, by computing the average speed on the road section shown on the video or doing the maths of the aerodynamics force involved at such extremely high speeds for example.</p>
+
+  <p>Yesterday, Misha Charoudin who is a professional driver and a vlogger published a video of him and a friend
+    discussing the record attempt with some technical details, such as the gearbox ratios and the wheels
+    dimensions of the car. Using this information, I got the idea to try computing the maximum speed using an audio
+    frequency spectrum analysis. The idea is to use the engine sound to guess the car real speed. Everything is
+    connected, it should be straightforward.</p>
+
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/fSNRKBj_hUE" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen></iframe>
+
+  <h3>Step 1: Download the record attempt video using youtube-dl.</h3>
+
+  <p><code>youtube-dl --list-formats https://www.youtube.com/watch?v=N22JfNHiC1k</code></p>
+  <p>I selected the format with the highest audio bitrate.</p>
+  <p><code>youtube-dl --format 251 https://www.youtube.com/watch?v=N22JfNHiC1k</code></p>
+
+  <h3>Step 2: Extract the audio from the video.</h3>
+
+  <p>There is a ffmpeg command to extract the audio from the video, but I used VLC because I didn't feel like installing
+    ffmpeg and searching for the right command. I exported to FLAC because it's a lossless format compatible with
+    Audacity.</p>
+
+  <img src="./vlc-convert.png" alt="Screenshot of VLC to convert the video to audio" />
+
+  <h3>Step 3: Loading the audio file in Audacity</h3>
+
+  <img src="./audacity-load.png" alt="Screenshot of the audio file in Audacity" />
+
+  <p>The file is in stereo, but the analysis is simpler in mono. I used the "Split stereo to mono" option and deleted
+    one of the track. It doesn't matter which one, but to be sure I tried both and I obtained the same final
+    result.</p>
+
+  <img src="./audacity-split.png" alt="Screenshot of the context menu to select split stereo to mono" />
+
+  <h3>Step 4: Setting up the spectrogram</h3>
+
+  <p>I selected the spectrogram view, a very cool feature of Audacity.</p>
+  <img src="./audacity-spectrogram.png" alt="Screenshot of the context menu to select the spectrogram view" />
+  <br />
+  <img src="./spectrogram.png" alt="Spectrogram" />
+
+  <p>Nothing is very visible yet, it's mostly (wind) noise. So I tried a few settings and after some tries, I got
+    something a lot more interesting. I used the highest window size and ignored the frequencies above 600Hz as I'm more
+    interested in the main harmonic frequencies of the engine. I also resized the spectrogram view.</p>
+
+  <img src="./spectrogram-settings.png" alt="Screenshot of the spectrogram view settings" />
+  <br />
+  <img src="./nice-spectrogram.png" alt="A nicer spectrogram" />
+
+  <h3>Step 5: Analysing the spectrogram</h3>
+
+  <p>The lines are harmonic frequencies of the car components, such as the gearbox, the engine, the wheels,
+    etc. One line is particularly visible, and thanks to the gearshifts it's easy to guess that it's one harmonic
+    related to the engine sound.</p>
+  <img src="./spectrogram-explained.png" alt="An explained version of the spectrogram" />
+
+  <p>I then zoomed on the part when the car is the fastest in the video, and selected the audio where the harmonic is at
+    its highest pitch. I then plotted the spectrum in the analyze menu, to have a more precise idea of the frequency.
+    Finding out where is the corresponding peak in the chart is a bit difficult but it's for sure the one at 251Hz.</p>
+
+  <img src="./audacity-selection.png" alt="Selection of the audio at the maximum speed" />
+  <br />
+  <img src="./frequency-analysis.png" alt="Frequency analysis of the video sound at the maximum speed" />
+
+  <h3>Step 6: Computing the engine RPM</h3>
+
+  <p>So after that, I knew that at the highest speed, my nice engine harmonic had a frequency of 251Hz. I only needed to
+    figure out the formula to compute the RPM from this harmonic frequency. Thankfully, the video from Misha includes
+    data with the engine RPM at two points in time. The dashboard is blurred in the YouTube video of record, I wonder why,
+    but according to the Misha video SSC also published on Instagram videos with a not blurred dashboard,
+    allowing them to know the RPM at two points in time.</p>
+
+  <p>I also quickly searched the formula and found out it was something like
+    <code>RPM = 60 * frequency * something</code>. The main thing is that we need to convert from Hz to RPM and it's
+    linear.</p>
+
+  <p>Using audacity I analyzed the frequencies of the same harmonic. I got 243Hz at 1m21, for about 7300rpm, and 189Hz
+    at 1m37 for about 5400rpm. My formula was, therefore, <code>RPM = 30 * frequency</code>.</p>
+
+  <p>Finally, to compute the engine RPM at the maximum speed, I multiplied the frequency of the harmonic by 30. So
+    <code>251 * 30 = 7530 rpm</code>.</p>
+
+  <h3>Step 7: Getting the final speed</h3>
+
+  <p>Computing the car speed from the engine RPM is simple if you have the data, you know how fast the engine rotates
+    and you need to know how fast the wheels rotate, and their size.</p>
+
+  <p>Good news, SSC <a href="https://www.sscnorthamerica.com/news/jerod-shelby-explains-world-record">gave us the
+      data.</a> We rear wheels had <code>89.125</code> inches of circumference, <code>2.263775</code> meters. The final
+    drive ratio was <code>2.92</code> and the sixth gear, the one used for the record had a ratio of <code>0.757</code>.
+  </p>
+
+  <p>The gearbox ratios are different than in the Misha video. I think they didn't know SSC had used a specific gearbox.
+    We got a final drive ratio of <code>3.167</code> and a sixth gear ratio of <code>0.784</code>.
+
+  <p>Putting everything together, we have
+    <code>speed = rear_wheel_circumference * rpm / 60 / final_drive_ratio / sixth_gear_ratio</code>.</p>
+
+  <p>With SSC data, at <code>7530</code> rpm it means <code>128.5m/s</code> or <code>460.8km/h</code> or
+    <code>286.3mph</code>. Still above the previous records.</p>
+  <p>With Misha's video data, at <code>7530</code> rpm it means <code>114.4m/s</code> or <code>411.9km/h</code> or
+    <code>255.9mph</code>.</p>
+
+  <h3>Who is right?</h3>
+
+  <p>SSC <a href="https://www.sscnorthamerica.com/news/jerod-shelby-explains-world-record">announced</a> that the engine
+    was at <code>8600rpm</code> at the maximum speed, but I computed <code>7530rpm</code>. I may have used some wrong data
+    when estimating the RPM, but my formula <code>RPM = 30 * frequency</code> is very clean and matches with analysis of
+    many people.</p>
+
+  <br />
+  <hr />
+  <p>Antoine Pultier - 21/10/2020</p>
+</body>
+
+</html>
